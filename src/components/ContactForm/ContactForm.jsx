@@ -1,101 +1,63 @@
-import PropTypes from 'prop-types';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
+import s from './ContactForm.module.css';
 import * as Yup from 'yup';
-import iziToast from 'izitoast';
-import 'izitoast/dist/css/iziToast.min.css';
-import { BsPhone, BsPerson, BsPersonAdd } from 'react-icons/bs';
-import css from './ContactForm.module.css';
+import { useDispatch } from 'react-redux';
+import { nanoid } from '@reduxjs/toolkit';
+import { addContact } from '../../redux/contactsSlice';
 
-const initialValues = {
-  id: '',
-  name: '',
-  number: '',
-};
+export default function ContactForm() {
+  const dispatch = useDispatch();
+  const FeedbackSchema = Yup.object().shape({
+    name: Yup.string()
+      .min(3, 'Too Short!')
+      .max(50, 'Too Long!')
+      .required('Required'),
+    number: Yup.string()
+      .min(3, 'Too Short!')
+      .max(50, 'Too Long!')
+      .required('Required'),
+  });
 
-const validationSchema = Yup.object().shape({
-  name: Yup.string()
-    .min(3, 'Too Short!')
-    .max(50, 'Too Long!')
-    .required('Required'),
-  number: Yup.string()
-    .matches(/^\d{3}-\d{2}-\d{2}$/, 'Invalid phone number format')
-    .required('Required'),
-});
+  const handleSubmit = (values, options) => {
+    const newContact = {
+      id: nanoid(),
+      name: values.name,
+      number: values.number,
+    };
+    dispatch(addContact(newContact));
+    options.resetForm();
+  };
 
-const ContactForm = ({ contacts, onSubmit }) => {
-  const handleSubmit = (values, { resetForm }) => {
-    if (
-      contacts.some(
-        contact => contact.name.toLowerCase() === values.name.toLowerCase()
-      )
-    ) {
-      iziToast.warning({
-        position: 'topRight',
-        message: `${values.name} is already in contacts`,
-      });
-      resetForm();
-      return;
-    }
-
-    onSubmit(values);
-    resetForm();
+  const initialValues = {
+    name: '',
+    number: '',
   };
 
   return (
-    <Formik
-      onSubmit={handleSubmit}
-      initialValues={initialValues}
-      validationSchema={validationSchema}
-    >
-      <Form autoComplete="off" className={css.contactFormWrap}>
-        <label className={css.contactFormLabel} htmlFor="name">
-          Name
-        </label>
-        <div className={css.contactFormInputWrap}>
-          <Field
-            className={css.contactFormInput}
-            type="text"
-            name="name"
-            id="name"
-          />
-          <BsPerson className={css.contactFormIcon} size="20" />
-        </div>
-        <ErrorMessage
-          name="name"
-          component="span"
-          className={css.contactFormError}
-        />
-
-        <label className={css.contactFormLabel} htmlFor="number">
-          Number
-        </label>
-        <div className={css.contactFormInputWrap}>
-          <Field
-            className={css.contactFormInput}
-            type="text"
-            name="number"
-            id="number"
-          />
-          <BsPhone className={css.contactFormIcon} size="20" />
-        </div>
-        <ErrorMessage
-          name="number"
-          component="span"
-          className={css.contactFormError}
-        />
-
-        <button className={css.contactFormBtn} type="submit">
-          <BsPersonAdd className={css.contactFormBtnIcon} size="15" />
-          Add contact
-        </button>
-      </Form>
-    </Formik>
+    <>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={FeedbackSchema}
+        onSubmit={handleSubmit}
+      >
+        <Form className={s.contactForm}>
+          <label className={s.label}>
+            <p>Name</p>
+            <Field className={s.input} type="text" name="name" />
+            <ErrorMessage name="name" component="span" className={s.error} />
+          </label>
+          <label className={s.label}>
+            <p>Number</p>
+            <Field className={s.input} type="number" name="number" />
+            <ErrorMessage name="number" component="span" className={s.error} />
+          </label>
+          <div className={s.btnWrapper}>
+            <button className={s.btn} type="submit">
+              Add contact
+            </button>
+          </div>
+        </Form>
+      </Formik>
+    </>
   );
-};
-
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-  contacts: PropTypes.array.isRequired,
-};
-
-export default ContactForm;
+}

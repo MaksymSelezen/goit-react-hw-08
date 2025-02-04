@@ -34,3 +34,16 @@ p,
 a {
   font-size: 18px;
 }
+
+.editBtn {
+  border: none;
+  display: flex;
+  gap: 3px;
+  align-items: end;
+}
+
+.btnWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

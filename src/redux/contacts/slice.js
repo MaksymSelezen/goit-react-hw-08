@@ -4,7 +4,8 @@ import {
   deleteContact,
   editContactThunk,
   fetchContacts,
-} from './contactsOps';
+} from './operations';
+import { logoutThunk } from '../auth/operations';
 
 const initialState = {
   contacts: {
@@ -44,13 +45,16 @@ const slice = createSlice({
         const item = state.contacts.items.find(
           item => item.id === action.payload.id
         );
-        item.name = action.payload.name;
+        if (item) {
+          item.name = action.payload.name;
+        }
+      })
+      .addCase(logoutThunk.fulfilled, state => {
+        state.contacts.items = [];
+        state.contacts.loading = false;
+        state.contacts.error = null;
       });
   },
 });
 export const contactsReducer = slice.reducer;
 export const { setError, setLoading, fetchDataSuccess } = slice.actions;
-
-export const selectContacts = state => state.contacts.contacts.items;
-export const selectLoading = state => state.contacts.loading;
-export const selectError = state => state.contacts.error;

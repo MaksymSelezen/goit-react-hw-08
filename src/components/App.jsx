@@ -1,30 +1,58 @@
-import { useDispatch, useSelector } from 'react-redux';
 import './App.css';
-import ContactForm from './ContactForm/ContactForm.jsx';
-import ContactList from './ContactList/ContactList.jsx';
-import SearchBox from './SearchBox/SearchBox.jsx';
+import { Route, Routes } from 'react-router-dom';
+import HomePage from '../pages/HomePage.jsx';
+import NotFoundPage from '../pages/NotFoundPage.jsx';
+import ContactsPage from '../pages/ContactsPage.jsx';
+import Layout from './Layout.jsx';
+import LoginPage from '../pages/LoginPage.jsx';
+import RegistrationPage from '../pages/RegistrationPage.jsx';
+import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { fetchContacts } from '../redux/contactsOps.js';
-import { selectError, selectLoading } from '../redux/contactsSlice.js';
+import { refreshUserThunk } from '../redux/auth/operations.js';
+import { selectIsRefreshing } from '../redux/auth/selectors.js';
+import PrivateRoute from './PrivateRoute.jsx';
+import PublicRoute from './PublicRoute.jsx';
 
 function App() {
   const dispatch = useDispatch();
+  const isRefreshing = useSelector(selectIsRefreshing);
   useEffect(() => {
-    dispatch(fetchContacts());
+    dispatch(refreshUserThunk());
   }, [dispatch]);
-  const isError = useSelector(selectError);
-  const isLoading = useSelector(selectLoading);
-
-  return (
+  return isRefreshing ? null : (
     <div className="container">
-      <h1 className="title">Phonebook</h1>
-      <ContactForm />
-      <SearchBox />
-      {isError && <h2>Opps...⚠️</h2>}
-      {isLoading && <h2>Loading...</h2>}
-      <ContactList />
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route
+            path="/contacts"
+            element={
+              <PrivateRoute>
+                <ContactsPage />
+              </PrivateRoute>
+            }
+          />
+        </Route>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <RegistrationPage />
+            </PublicRoute>
+          }
+        />
+
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </div>
   );
 }
-
 export default App;
